@@ -1,0 +1,220 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+C	svm.h	/^  double C;  \/\/ for C_SVC$/;"	m	struct:SVMParameter
+CFLAGS	Makefile	/^CFLAGS = -Wall -Wconversion -O3 -fPIC$/;"	m
+CXX	Makefile	/^CXX ?= g++$/;"	m
+C_SVC	svm.h	/^enum { C_SVC, NU_SVC };  \/\/ svm_type$/;"	e	enum:__anon2
+Cache	svm.cpp	/^Cache::Cache(int l, long int size) : l_(l), size_(size) {$/;"	f	class:Cache
+Cache	svm.cpp	/^class Cache {$/;"	c	file:
+CalculateRho	svm.cpp	/^double Solver::CalculateRho() {$/;"	f	class:Solver
+CalculateRho	svm.cpp	/^double Solver_NU::CalculateRho() {$/;"	f	class:Solver_NU
+Calibrator	va.h	/^struct Calibrator {$/;"	s
+CheckParameter	va.cpp	/^const char *CheckParameter(const struct Parameter *param) {$/;"	f
+CheckSVMParameter	svm.cpp	/^const char *CheckSVMParameter(const SVMParameter *param) {$/;"	f
+Cn_	svm.cpp	/^  double Cn_;$/;"	m	class:Solver	file:
+Cp_	svm.cpp	/^  double Cp_;$/;"	m	class:Solver	file:
+CrossValidation	va.cpp	/^void CrossValidation(const struct Problem *prob, const struct Parameter *param,$/;"	f
+DecisionFunction	svm.cpp	/^struct DecisionFunction {$/;"	s	file:
+DeleteLRU	svm.cpp	/^void Cache::DeleteLRU(Head *h) {$/;"	f	class:Cache
+DoShrinking	svm.cpp	/^void Solver::DoShrinking() {$/;"	f	class:Solver
+DoShrinking	svm.cpp	/^void Solver_NU::DoShrinking() {$/;"	f	class:Solver_NU
+Dot	svm.cpp	/^double Kernel::Dot(const Node *px, const Node *py) {$/;"	f	class:Kernel
+ExitWithHelp	va-cv.cpp	/^void ExitWithHelp() {$/;"	f
+ExitWithHelp	va-offline.cpp	/^void ExitWithHelp() {$/;"	f
+ExitWithHelp	va-online.cpp	/^void ExitWithHelp() {$/;"	f
+FREE	svm.cpp	/^  enum { LOWER_BOUND, UPPER_BOUND, FREE };$/;"	e	enum:Solver::__anon1	file:
+FindMostFrequent	utilities.h	/^T FindMostFrequent(T *array, int size) {$/;"	f
+FreeModel	va.cpp	/^void FreeModel(struct Model *model) {$/;"	f
+FreeParam	va.cpp	/^void FreeParam(struct Parameter *param) {$/;"	f
+FreeProblem	utilities.cpp	/^void FreeProblem(struct Problem *problem) {$/;"	f
+FreeSVMModel	svm.cpp	/^void FreeSVMModel(SVMModel** model)$/;"	f
+FreeSVMModelContent	svm.cpp	/^void FreeSVMModelContent(SVMModel *model) {$/;"	f
+FreeSVMParam	svm.cpp	/^void FreeSVMParam(SVMParameter* param) {$/;"	f
+G_	svm.cpp	/^  double *G_;  \/\/ gradient of objective function$/;"	m	class:Solver	file:
+G_bar_	svm.cpp	/^  double *G_bar_;  \/\/ gradient, if we treat free variables as 0$/;"	m	class:Solver	file:
+GroupClasses	utilities.cpp	/^void GroupClasses(const Problem *prob, int *num_classes_ret, int **labels_ret, int **start_ret, int **count_ret, int *perm) {$/;"	f
+Head	svm.cpp	/^  struct Head {$/;"	s	class:Cache	file:
+Info	svm.cpp	/^static void Info(const char *format, ...) {$/;"	f	file:
+InitSVMParam	svm.cpp	/^void InitSVMParam(struct SVMParameter *param) {$/;"	f
+InsertLRU	svm.cpp	/^void Cache::InsertLRU(Head *h) {$/;"	f	class:Cache
+IsFree	svm.cpp	/^  bool IsFree(int i) {$/;"	f	class:Solver
+IsLowerBound	svm.cpp	/^  bool IsLowerBound(int i) {$/;"	f	class:Solver
+IsShrunk	svm.cpp	/^bool Solver::IsShrunk(int i, double Gmax1, double Gmax2) {$/;"	f	class:Solver
+IsShrunk	svm.cpp	/^bool Solver_NU::IsShrunk(int i, double Gmax1, double Gmax2, double Gmax3, double Gmax4) {$/;"	f	class:Solver_NU
+IsUpperBound	svm.cpp	/^  bool IsUpperBound(int i) {$/;"	f	class:Solver
+Kernel	svm.cpp	/^Kernel::Kernel(int l, Node *const *x, const SVMParameter &param)$/;"	f	class:Kernel
+Kernel	svm.cpp	/^class Kernel : public QMatrix {$/;"	c	file:
+KernelFunction	svm.cpp	/^double Kernel::KernelFunction(const Node *x, const Node *y, const SVMParameter &param) {$/;"	f	class:Kernel
+KernelLinear	svm.cpp	/^  double KernelLinear(int i, int j) const {$/;"	f	class:Kernel	file:
+KernelPoly	svm.cpp	/^  double KernelPoly(int i, int j) const {$/;"	f	class:Kernel	file:
+KernelPrecomputed	svm.cpp	/^  double KernelPrecomputed(int i, int j) const {$/;"	f	class:Kernel	file:
+KernelRBF	svm.cpp	/^  double KernelRBF(int i, int j) const {$/;"	f	class:Kernel	file:
+KernelSigmoid	svm.cpp	/^  double KernelSigmoid(int i, int j) const {$/;"	f	class:Kernel	file:
+LINEAR	svm.h	/^enum { LINEAR, POLY, RBF, SIGMOID, PRECOMPUTED };  \/\/ kernel_type$/;"	e	enum:__anon3
+LOWER_BOUND	svm.cpp	/^  enum { LOWER_BOUND, UPPER_BOUND, FREE };$/;"	e	enum:Solver::__anon1	file:
+LoadModel	va.cpp	/^Model *LoadModel(const char *model_file_name) {$/;"	f
+LoadSVMModel	svm.cpp	/^SVMModel *LoadSVMModel(std::ifstream &model_file) {$/;"	f
+Model	va.h	/^struct Model {$/;"	s
+NU_SVC	svm.h	/^enum { C_SVC, NU_SVC };  \/\/ svm_type$/;"	e	enum:__anon2
+Node	utilities.h	/^struct Node {$/;"	s
+OS	Makefile	/^OS = $(shell uname)$/;"	m
+OnlinePredict	va.cpp	/^void OnlinePredict(const struct Problem *prob, const struct Parameter *param,$/;"	f
+POLY	svm.h	/^enum { LINEAR, POLY, RBF, SIGMOID, PRECOMPUTED };  \/\/ kernel_type$/;"	e	enum:__anon3
+PRECOMPUTED	svm.h	/^enum { LINEAR, POLY, RBF, SIGMOID, PRECOMPUTED };  \/\/ kernel_type$/;"	e	enum:__anon3
+Parameter	va.h	/^struct Parameter {$/;"	s
+ParseCommandLine	va-cv.cpp	/^void ParseCommandLine(int argc, char **argv, char *data_file_name, char *output_file_name) {$/;"	f
+ParseCommandLine	va-offline.cpp	/^void ParseCommandLine(int argc, char **argv, char *train_file_name, char *test_file_name, char *output_file_name, char *model_file_name) {$/;"	f
+ParseCommandLine	va-online.cpp	/^void ParseCommandLine(int argc, char **argv, char *data_file_name, char *output_file_name) {$/;"	f
+PredictSVM	svm.cpp	/^double PredictSVM(const SVMModel *model, const Node *x) {$/;"	f
+PredictSVMValues	svm.cpp	/^double PredictSVMValues(const SVMModel *model, const Node *x, double *decision_values) {$/;"	f
+PredictVA	va.cpp	/^double PredictVA(const struct Problem *train, const struct Model *model, const struct Node *x, double &lower, double &upper, double **avg_prob) {$/;"	f
+PrintCout	svm.cpp	/^static void PrintCout(const char *s) {$/;"	f	file:
+PrintNull	svm.cpp	/^static void PrintNull(const char *s) {}$/;"	f	file:
+PrintString	svm.cpp	/^static void (*PrintString) (const char *) = &PrintNull;$/;"	v	file:
+Problem	utilities.h	/^struct Problem {$/;"	s
+QD_	svm.cpp	/^  const double *QD_;$/;"	m	class:Solver	file:
+QD_	svm.cpp	/^  double *QD_;$/;"	m	class:SVC_Q	file:
+QMatrix	svm.cpp	/^class QMatrix {$/;"	c	file:
+Q_	svm.cpp	/^  const QMatrix *Q_;$/;"	m	class:Solver	file:
+Qfloat	svm.cpp	/^typedef float Qfloat;$/;"	t	file:
+QuickSortIndex	utilities.h	/^void QuickSortIndex(T array[], size_t index[], size_t left, size_t right) {$/;"	f
+RBF	svm.h	/^enum { LINEAR, POLY, RBF, SIGMOID, PRECOMPUTED };  \/\/ kernel_type$/;"	e	enum:__anon3
+ReadProblem	utilities.cpp	/^Problem *ReadProblem(const char *file_name) {$/;"	f
+ReconstructGradient	svm.cpp	/^void Solver::ReconstructGradient() {$/;"	f	class:Solver
+SHVER	Makefile	/^SHVER = 2$/;"	m
+SIGMOID	svm.h	/^enum { LINEAR, POLY, RBF, SIGMOID, PRECOMPUTED };  \/\/ kernel_type$/;"	e	enum:__anon3
+SVC_Q	svm.cpp	/^  SVC_Q(const Problem &prob, const SVMParameter &param, const schar *y) : Kernel(prob.num_ex, prob.x, param) {$/;"	f	class:SVC_Q
+SVC_Q	svm.cpp	/^class SVC_Q : public Kernel {$/;"	c	file:
+SVMModel	svm.h	/^struct SVMModel {$/;"	s
+SVMParameter	svm.h	/^struct SVMParameter {$/;"	s
+SaveModel	va.cpp	/^int SaveModel(const char *model_file_name, const struct Model *model) {$/;"	f
+SaveSVMModel	svm.cpp	/^int SaveSVMModel(std::ofstream &model_file, const struct SVMModel *model) {$/;"	f
+SelectWorkingSet	svm.cpp	/^int Solver::SelectWorkingSet(int &out_i, int &out_j) {$/;"	f	class:Solver
+SelectWorkingSet	svm.cpp	/^int Solver_NU::SelectWorkingSet(int &out_i, int &out_j) {$/;"	f	class:Solver_NU
+SetPrintCout	svm.cpp	/^void SetPrintCout() {$/;"	f
+SetPrintNull	svm.cpp	/^void SetPrintNull() {$/;"	f
+SolutionInfo	svm.cpp	/^  struct SolutionInfo {$/;"	s	class:Solver	file:
+Solve	svm.cpp	/^  void Solve(int l, const QMatrix& Q, const double *p, const schar *y,$/;"	f	class:Solver_NU
+Solve	svm.cpp	/^void Solver::Solve(int l, const QMatrix &Q, const double *p, const schar *y,$/;"	f	class:Solver
+SolveCSVC	svm.cpp	/^static void SolveCSVC(const Problem *prob, const SVMParameter *param, double *alpha, Solver::SolutionInfo *si, double Cp, double Cn) {$/;"	f	file:
+SolveNuSVC	svm.cpp	/^static void SolveNuSVC(const Problem *prob, const SVMParameter *param, double *alpha, Solver::SolutionInfo *si) {$/;"	f	file:
+Solver	svm.cpp	/^  Solver() {};$/;"	f	class:Solver
+Solver	svm.cpp	/^class Solver {$/;"	c	file:
+Solver_NU	svm.cpp	/^  Solver_NU() {}$/;"	f	class:Solver_NU
+Solver_NU	svm.cpp	/^class Solver_NU : public Solver {$/;"	c	file:
+SwapIndex	svm.cpp	/^  virtual void SwapIndex(int i, int j) const {$/;"	f	class:Kernel
+SwapIndex	svm.cpp	/^  void SwapIndex(int i, int j) const {$/;"	f	class:SVC_Q
+SwapIndex	svm.cpp	/^void Cache::SwapIndex(int i, int j) {$/;"	f	class:Cache
+SwapIndex	svm.cpp	/^void Solver::SwapIndex(int i, int j) {$/;"	f	class:Solver
+TrainSVM	svm.cpp	/^SVMModel *TrainSVM(const Problem *prob, const SVMParameter *param) {$/;"	f
+TrainSingleSVM	svm.cpp	/^static DecisionFunction TrainSingleSVM(const Problem *prob, const SVMParameter *param, double Cp, double Cn) {$/;"	f	file:
+TrainVA	va.cpp	/^Model *TrainVA(const struct Problem *train, const struct Parameter *param) {$/;"	f
+UPPER_BOUND	svm.cpp	/^  enum { LOWER_BOUND, UPPER_BOUND, FREE };$/;"	e	enum:Solver::__anon1	file:
+UpdateAlphaStatus	svm.cpp	/^  void UpdateAlphaStatus(int i) {$/;"	f	class:Solver
+VA_SVM_H_	svm.h	/^#define VA_SVM_H_$/;"	d
+VA_UTILITIES_H_	utilities.h	/^#define VA_UTILITIES_H_$/;"	d
+VA_VM_H_	va.h	/^#define VA_VM_H_$/;"	d
+active_set_	svm.cpp	/^  int *active_set_;$/;"	m	class:Solver	file:
+active_size_	svm.cpp	/^  int active_size_;$/;"	m	class:Solver	file:
+alpha	svm.cpp	/^  double *alpha;$/;"	m	struct:DecisionFunction	file:
+alpha_	svm.cpp	/^  double *alpha_;$/;"	m	class:Solver	file:
+alpha_status_	svm.cpp	/^  char *alpha_status_;  \/\/ LOWER_BOUND, UPPER_BOUND, FREE$/;"	m	class:Solver	file:
+cache_	svm.cpp	/^  Cache *cache_;$/;"	m	class:SVC_Q	file:
+cache_size	svm.h	/^  double cache_size; \/\/ in MB$/;"	m	struct:SVMParameter
+cali	va.h	/^  struct Calibrator *cali;$/;"	m	struct:Model	typeref:struct:Model::Calibrator
+clone	utilities.h	/^static inline void clone(T *&dest, S *src, int size) {$/;"	f
+coef0	svm.cpp	/^  const double coef0;$/;"	m	class:Kernel	file:
+coef0	svm.h	/^  double coef0;  \/\/ for poly\/sigmoid$/;"	m	struct:SVMParameter
+data	svm.cpp	/^    Qfloat *data;$/;"	m	struct:Cache::Head	file:
+degree	svm.cpp	/^  const int degree;$/;"	m	class:Kernel	file:
+degree	svm.h	/^  int degree;  \/\/ for poly$/;"	m	struct:SVMParameter
+eps	svm.h	/^  double eps;  \/\/ stopping criteria$/;"	m	struct:SVMParameter
+eps_	svm.cpp	/^  double eps_;$/;"	m	class:Solver	file:
+free_sv	svm.h	/^  int free_sv;  \/\/ 1 if SVMModel is created by LoadSVMModel$/;"	m	struct:SVMModel
+gamma	svm.cpp	/^  const double gamma;$/;"	m	class:Kernel	file:
+gamma	svm.h	/^  double gamma;  \/\/ for poly\/rbf\/sigmoid$/;"	m	struct:SVMParameter
+get_C	svm.cpp	/^  double get_C(int i) {$/;"	f	class:Solver
+get_Q	svm.cpp	/^  Qfloat *get_Q(int i, int len) const {$/;"	f	class:SVC_Q
+get_QD	svm.cpp	/^  double *get_QD() const {$/;"	f	class:SVC_Q
+get_data	svm.cpp	/^int Cache::get_data(const int index, Qfloat **data, int len) {$/;"	f	class:Cache
+head_	svm.cpp	/^  Head *head_;$/;"	m	class:Cache	file:
+index	utilities.h	/^  int index;$/;"	m	struct:Node
+kEpsilon	utilities.h	/^const double kEpsilon = 1e-15;$/;"	v
+kInf	utilities.h	/^const double kInf = HUGE_VAL;$/;"	v
+kKernelTypeTable	svm.cpp	/^static const char *kKernelTypeTable[] = { "linear", "polynomial", "rbf", "sigmoid", "precomputed", NULL };$/;"	v	file:
+kSVMTypeTable	svm.cpp	/^static const char *kSVMTypeTable[] = { "c_svc", "nu_svc", NULL };$/;"	v	file:
+kTau	utilities.h	/^const double kTau = 1e-12;$/;"	v
+kernel_function	svm.cpp	/^  double (Kernel::*kernel_function)(int i, int j) const;$/;"	m	class:Kernel	file:
+kernel_type	svm.cpp	/^  const int kernel_type;$/;"	m	class:Kernel	file:
+kernel_type	svm.h	/^  int kernel_type;$/;"	m	struct:SVMParameter
+l_	svm.cpp	/^  int l_;$/;"	m	class:Cache	file:
+l_	svm.cpp	/^  int l_;$/;"	m	class:Solver	file:
+labels	svm.h	/^  int *labels;  \/\/ label of each class (label[k])$/;"	m	struct:SVMModel
+labels	va.h	/^  double *labels;$/;"	m	struct:Calibrator
+labels	va.h	/^  int *labels;$/;"	m	struct:Model
+len	svm.cpp	/^    int len;  \/\/ data[0,len) is cached in this entry$/;"	m	struct:Cache::Head	file:
+load_model	va.h	/^  int load_model;$/;"	m	struct:Parameter
+lru_head_	svm.cpp	/^  Head lru_head_;$/;"	m	class:Cache	file:
+main	va-cv.cpp	/^int main(int argc, char *argv[]) {$/;"	f
+main	va-offline.cpp	/^int main(int argc, char *argv[]) {$/;"	f
+main	va-online.cpp	/^int main(int argc, char *argv[]) {$/;"	f
+max_index	utilities.h	/^  int max_index;$/;"	m	struct:Problem
+next	svm.cpp	/^    Head *prev, *next;  \/\/ a circular list$/;"	m	struct:Cache::Head	file:
+nu	svm.h	/^  double nu;  \/\/ for NU_SVC$/;"	m	struct:SVMParameter
+num_classes	svm.h	/^  int num_classes;  \/\/ number of classes (k)$/;"	m	struct:SVMModel
+num_classes	va.h	/^  int num_classes;$/;"	m	struct:Model
+num_ex	svm.h	/^  int num_ex;$/;"	m	struct:SVMModel
+num_ex	utilities.h	/^  int num_ex;  \/\/ number of examples$/;"	m	struct:Problem
+num_ex	va.h	/^  int num_ex;$/;"	m	struct:Calibrator
+num_ex	va.h	/^  int num_ex;$/;"	m	struct:Model
+num_folds	va.h	/^  int num_folds;$/;"	m	struct:Parameter
+num_svs	svm.h	/^  int *num_svs;  \/\/ number of SVs for each class (nSV[k])$/;"	m	struct:SVMModel
+num_weights	svm.h	/^  int num_weights;  \/\/ for C_SVC$/;"	m	struct:SVMParameter
+obj	svm.cpp	/^    double obj;$/;"	m	struct:Solver::SolutionInfo	file:
+p_	svm.cpp	/^  double *p_;$/;"	m	class:Solver	file:
+param	svm.h	/^  struct SVMParameter param;$/;"	m	struct:SVMModel	typeref:struct:SVMModel::SVMParameter
+param	va-cv.cpp	/^struct Parameter param;$/;"	v	typeref:struct:Parameter
+param	va-offline.cpp	/^struct Parameter param;$/;"	v	typeref:struct:Parameter
+param	va-online.cpp	/^struct Parameter param;$/;"	v	typeref:struct:Parameter
+param	va.h	/^  struct Parameter param;$/;"	m	struct:Model	typeref:struct:Model::Parameter
+prev	svm.cpp	/^    Head *prev, *next;  \/\/ a circular list$/;"	m	struct:Cache::Head	file:
+probability	va.h	/^  int probability;$/;"	m	struct:Parameter
+r	svm.cpp	/^    double r;  \/\/ for Solver_NU$/;"	m	struct:Solver::SolutionInfo	file:
+ratio	va.h	/^  double ratio;$/;"	m	struct:Parameter
+rho	svm.cpp	/^    double rho;$/;"	m	struct:Solver::SolutionInfo	file:
+rho	svm.cpp	/^  double rho;$/;"	m	struct:DecisionFunction	file:
+rho	svm.h	/^  double *rho;  \/\/ constants in decision functions (rho[k*(k-1)\/2])$/;"	m	struct:SVMModel
+save_model	va.h	/^  int save_model;$/;"	m	struct:Parameter
+schar	svm.cpp	/^typedef signed char schar;$/;"	t	file:
+scores	va.h	/^  double *scores;$/;"	m	struct:Calibrator
+shrinking	svm.h	/^  int shrinking;  \/\/ use the shrinking heuristics$/;"	m	struct:SVMParameter
+si_	svm.cpp	/^  SolutionInfo *si_;$/;"	m	class:Solver_NU	file:
+size_	svm.cpp	/^  long int size_;$/;"	m	class:Cache	file:
+sv_coef	svm.h	/^  double **sv_coef;  \/\/ coefficients for SVs in decision functions (sv_coef[k-1][total_sv])$/;"	m	struct:SVMModel
+sv_indices	svm.h	/^  int *sv_indices;  \/\/ sv_indices[0,...,nSV-1] are values in [1,...,num_traning_data] to indicate SVs in the training set$/;"	m	struct:SVMModel
+svm_model	va.h	/^  struct SVMModel *svm_model;$/;"	m	struct:Model	typeref:struct:Model::SVMModel
+svm_param	va.h	/^  struct SVMParameter *svm_param;$/;"	m	struct:Parameter	typeref:struct:Parameter::SVMParameter
+svm_type	svm.h	/^  int svm_type;$/;"	m	struct:SVMParameter
+svs	svm.h	/^  struct Node **svs;  \/\/ SVs (SV[total_sv])$/;"	m	struct:SVMModel	typeref:struct:SVMModel::Node
+total_sv	svm.h	/^  int total_sv;  \/\/ total #SV$/;"	m	struct:SVMModel
+unshrink_	svm.cpp	/^  bool unshrink_;  \/\/ XXX$/;"	m	class:Solver	file:
+upper_bound_n	svm.cpp	/^    double upper_bound_n;$/;"	m	struct:Solver::SolutionInfo	file:
+upper_bound_p	svm.cpp	/^    double upper_bound_p;$/;"	m	struct:Solver::SolutionInfo	file:
+value	utilities.h	/^  double value;$/;"	m	struct:Node
+weight_labels	svm.h	/^  int *weight_labels;  \/\/ for C_SVC$/;"	m	struct:SVMParameter
+weights	svm.h	/^  double *weights;  \/\/ for C_SVC$/;"	m	struct:SVMParameter
+x	utilities.h	/^  struct Node **x;$/;"	m	struct:Problem	typeref:struct:Problem::Node
+x_	svm.cpp	/^  const Node **x_;$/;"	m	class:Kernel	file:
+x_square_	svm.cpp	/^  double *x_square_;$/;"	m	class:Kernel	file:
+y	utilities.h	/^  double *y;$/;"	m	struct:Problem
+y_	svm.cpp	/^  schar *y_;$/;"	m	class:SVC_Q	file:
+y_	svm.cpp	/^  schar *y_;$/;"	m	class:Solver	file:
+~Cache	svm.cpp	/^Cache::~Cache() {$/;"	f	class:Cache
+~Kernel	svm.cpp	/^Kernel::~Kernel() {$/;"	f	class:Kernel
+~QMatrix	svm.cpp	/^  virtual ~QMatrix() {}$/;"	f	class:QMatrix
+~SVC_Q	svm.cpp	/^  ~SVC_Q() {$/;"	f	class:SVC_Q
+~Solver	svm.cpp	/^  virtual ~Solver() {};$/;"	f	class:Solver
