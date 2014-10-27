@@ -4,213 +4,217 @@
 #include <cmath>
 #include <random>
 
-Model *TrainVA(const struct Problem *train, const struct Parameter *param) {
-  Model *model = new Model;
-  model->param = *param;
-  int num_ex = train->num_ex;
+struct IsoNode
+{
+  int num;
+  double value;
+  struct IsoNode *next;
+};
 
-  int num_categories = param->num_categories;
-  int *categories = new int[num_ex];
-  double *combined_decision_values = new double[num_ex];
+double IsotonicRegression(const struct Calibrator cali, const double label, const double score) {
 
-  for (int i = 0; i < num_ex; ++i) {
-    categories[i] = -1;
-    combined_decision_values[i] = 0;
+  int num_ex = cali.num_ex + 1;
+  int i, j;
+
+  // create linked list
+  IsoNode *p, *h, *c;
+  h = new IsoNode;
+  h->next = NULL;
+  p = h;
+  for (i = 1; i < num_ex; ++i) {
+    c = new IsoNode;
+    p->next = c;
+    c->next = NULL;
+    p = c;
   }
 
-  model->svm_model = TrainSVM(train, param->svm_param);
-
-  int num_classes = model->svm_model->num_classes;
-  if (num_classes == 1) {
-    std::cerr << "WARNING: training set only has one class. See README for details." << std::endl;
+  // insert y
+  i = 0;
+  p = h;
+  int flag = 0;
+  while (i < num_ex-1) {
+    if (score <= cali.scores[i] && !flag) {
+      p->num = 1;
+      p->value = y;
+      p = p->next;
+      j = i;
+      flag = 1;
+    }
+    p->num = 1;
+    p->value = cali.labels[i++];
+    p = p->next;
   }
-  if (num_classes > 2 && num_categories < num_classes) {
-    std::cerr << "WARNING: number of categories should be the same as number of classes in Multi-Class case. See README for details." << std::endl;
-    num_categories = num_classes;
+  if (p != NULL) {
+    p->num = 1;
+    p->value = label;
+    j = num_ex-1;
   }
 
-  for (int i = 0; i < num_ex; ++i) {
-    double *decision_values = new double[num_classes*(num_classes-1)/2];
-    int label = 0;
-    double predict_label = PredictSVMValues(model->svm_model, train->x[i], decision_values);
-
-    for (int j = 0; j < num_classes; ++j) {
-      if (predict_label == model->svm_model->labels[j]) {
-        label = j;
+  // pava
+  p = h;
+  while (TRUE) {
+    int inc = 0;
+    for (p = h; p->next != NULL; p = p->next) {
+      c = p->next;
+      if ((p->value) > (c->value)) {
+        double value = ((p->num * p->value) + (c->num * c->value)) / (p->num + c->num);
+        p->value = value;
+        p->num = p->num + c->num;
+        p->next = c->next;
+        inc = 1;
+        delete c;
         break;
       }
     }
-    combined_decision_values[i] = CalcCombinedDecisionValues(decision_values, num_classes, label);
-    delete[] decision_values;
+    if (inc == 0) {
+      break;
+    }
   }
 
-  if (param->taxonomy_type == SVM_EL) {
-    for (int i = 0; i < num_ex; ++i) {
-      categories[i] = GetEqualLengthCategory(combined_decision_values[i], num_categories, num_classes);
+  // get g(s(x))
+  double value = 0;
+  for (p = h; p != NULL; p = p->next) {
+    j -= p->num;
+    if (j < 0) {
+      value = p->value;
+      break;
     }
   }
-  if (param->taxonomy_type == SVM_ES) {
-    if (num_classes == 1) {
-      for (int i = 0; i < num_ex; ++i) {
-        categories[i] = 0;
+
+  // free
+  for (p = h; p != NULL; ) {
+    c = p;
+    p = p->next;
+    delete c;
+  }
+
+  return value;
+}
+
+Model *TrainVA(const struct Problem *train, const struct Parameter *param) {
+  Model *model = new Model;
+  model->param = *param;
+  double ratio = param->ratio;
+  int num_classes;
+  int num_ex = train->num_ex;
+  int num_train = static_cast<int>(num_ex*ratio);
+  int num_cali = num_ex - num_train;
+
+  int *perm = new int[num_ex];
+  int *start = NULL;
+  int *label = NULL;
+  int *count = NULL;
+  GroupClasses(train, &num_classes, &label, &start, &count, perm);
+
+  if (num_classes == 1) {
+    std::cerr << "WARNING: training set only has one class. See README for details." << std::endl;
+  }
+
+  int *index;
+  int *selected = new int[num_ex];
+  clone(index, perm, num_ex);
+
+  std::random_device rd;
+  std::mt19937 g(rd());
+  for (int i = 0; i < num_classes; ++i) {
+    std::shuffle(index+start[i], index+start[i]+count[i], g);
+  }
+  for (int i = 0; i < num_ex; ++i) {
+    selected[i] = 0;
+  }
+
+  int fold_start = 0;
+  double curr_label = train->y[index[0]];
+  for (int i = 1; i < num_ex; ++i) {
+    double new_label = train->y[index[i]]
+    if (new_label != curr_label || i == num_ex-1) {
+      if (i == num_ex-1) {
+        ++i;
       }
-      model->points = new double[num_categories];
-      for (int i = 0; i < num_categories; ++i) {
-        model->points[i] = 0;
+      int num_class = i - fold_start;
+      int num_selected = i*num_train/num_ex - fold_start*num_train/num_ex;
+      if (num_selected == 0) {
+        num_selected = 1;
+        std::cerr << "WARNING: at least one instance per class." << std::endl;
       }
+      for (int j = 0; j < num_class; ++j) {
+        std::uniform_int_distribution<int> ui(0, num_class-j-1);
+        if (ui(g) < num_selected) {
+          selected[fold_start+j] = 1;
+          num_selected = num_selected - 1;
+        }
+      }
+      fold_start = i;
+      curr_label = new_label;
+    }
+  }
+
+  struct Problem proper;
+  proper.num_ex = num_train;
+  proper.x = new Node*[proper.num_ex];
+  proper.y = new double[proper.num_ex];
+  struct Problem calibrator;
+  calibrator.num_ex = num_cali;
+  calibrator.x = new Node*[calibrator.num_ex];
+  calibrator.y = new double[calibrator.num_ex];
+
+  int index1 = 0, index2 = 0;
+  for (int i = 0; i < num_ex; ++i) {
+    if (selected[i] == 1) {
+      proper.x[index1] = train->x[index[i]];
+      proper.y[index1] = train->y[index[i]];
+      ++index1;
     } else {
-      double *points;
-      points = GetEqualSizeCategory(combined_decision_values, categories, num_categories, num_ex);
-      clone(model->points, points, num_categories);
-      delete[] points;
+      calibrator.x[index2] = train->x[index[i]];
+      calibrator.y[index2] = train->y[index[i]];
+      ++index2;
     }
   }
-  if (param->taxonomy_type == SVM_KM) {
-    double *points;
-    points = GetKMeansCategory(combined_decision_values, categories, num_categories, num_ex, kEpsilon);
-    clone(model->points, points, num_categories);
-    delete[] points;
+  delete[] selected;
+
+  model->svm_model = TrainSVM(proper, param->svm_param);
+
+  Calibrator *cali = new Calibrator;
+  cali->num_ex = num_cali;
+  cali->scores = new double[num_cali];
+  cali->labels = new double[num_cali];
+
+  for(int i = 0; i < num_cali; ++i) {
+    double *decision_values = new double[num_classes*(num_classes-1)/2];
+    PredictSVMValues(model, calibrator.x[i], decision_values);
+    cali->scores[i] = decision_values[0];
+    cali->labels[i] = calibrator.y[i];
   }
-  delete[] combined_decision_values;
+  QuickSortIndex(cali->scores, cali->labels, 0, static_cast<size_t>(num_cali));
+  model->cali = *cali;
   model->num_classes = num_classes;
   model->num_ex = num_ex;
-  model->categories = categories;
-  model->num_categories = num_categories;
   clone(model->labels, model->svm_model->labels, num_classes);
 
   return model;
 }
 
-double PredictVA(const struct Problem *train, const struct Model *model, const struct Node *x, double &lower, double &upper, double **avg_prob) {
-  const Parameter& param = model->param;
-  int num_ex = model->num_ex;
+double PredictVA(const struct Model *model, const struct Node *x, double &lower, double &upper, double **avg_prob) {
   int num_classes = model->num_classes;
-  int num_categories = model->num_categories;
-  int *labels = model->labels;
-  double predict_label;
-  int **f_matrix = new int*[num_classes];
-  int *alter_labels = new int[num_ex];
+  double *decision_values;
 
-  for (int i = 0; i < num_classes; ++i) {
-    for (int j = 0; j < num_ex; ++j) {
-      if (labels[i] == train->y[j]) {
-        alter_labels[j] = i;
-      }
-    }
-  }
+  decision_values = new double[num_classes*(num_classes-1)/2];
+  double predicted_label = PredictSVMValues(model->svm_model, x, decision_values);
 
-  for (int i = 0; i < num_classes; ++i) {
-    int *categories = new int[num_ex+1];
-    f_matrix[i] = new int[num_classes];
-    for (int j = 0; j < num_classes; ++j) {
-      f_matrix[i][j] = 0;
-    }
+  lower = isotonic(model->cali, 0, decision_values[0]);
+  upper = isotonic(model->cali, 1, decision_values[0]);
 
-    for (int j = 0; j < num_ex; ++j) {
-      categories[j] = model->categories[j];
-    }
-    categories[num_ex] = -1;
-
-    double *decision_values = new double[num_classes*(num_classes-1)/2];
-    int label = 0;
-    double predict_label = PredictSVMValues(model->svm_model, x, decision_values);
-    for (int j = 0; j < num_classes; ++j) {
-      if (predict_label == labels[j]) {
-        label = j;
-        break;
-      }
-    }
-    double combined_decision_values = CalcCombinedDecisionValues(decision_values, num_classes, label);
-    if (param.taxonomy_type == SVM_EL) {
-      categories[num_ex] = GetEqualLengthCategory(combined_decision_values, num_categories, num_classes);
-    }
-    if (param.taxonomy_type == SVM_ES) {
-      if (num_classes == 1) {
-        categories[num_ex] = 0;
-      } else {
-        int j;
-        for (j = 0; j < num_categories; ++j) {
-          if (combined_decision_values <= model->points[j]) {
-            categories[num_ex] = j;
-            break;
-          }
-        }
-        if (j == num_categories) {
-          categories[num_ex] = num_categories - 1;
-        }
-      }
-    }
-    if (param.taxonomy_type == SVM_KM) {
-      categories[num_ex] = AssignCluster(num_categories, combined_decision_values, model->points);
-    }
-    delete[] decision_values;
-    for (int j = 0; j < num_ex; ++j) {
-      if (categories[j] == categories[num_ex]) {
-        ++f_matrix[i][alter_labels[j]];
-      }
-    }
-    f_matrix[i][i]++;
-
-    delete[] categories;
-  }
-
-  double **matrix = new double*[num_classes];
-  for (int i = 0; i < num_classes; ++i) {
-    matrix[i] = new double[num_classes];
-    int sum = 0;
-    for (int j = 0; j < num_classes; ++j) {
-      sum += f_matrix[i][j];
-    }
-    for (int j = 0; j < num_classes; ++j) {
-      matrix[i][j] = static_cast<double>(f_matrix[i][j]) / sum;
-    }
-  }
-
-  double *quality = new double[num_classes];
   *avg_prob = new double[num_classes];
-  for (int j = 0; j < num_classes; ++j) {
-    quality[j] = matrix[0][j];
-    (*avg_prob)[j] = matrix[0][j];
-    for (int i = 1; i < num_classes; ++i) {
-      if (matrix[i][j] < quality[j]) {
-        quality[j] = matrix[i][j];
-      }
-      (*avg_prob)[j] += matrix[i][j];
-    }
-    (*avg_prob)[j] /= num_classes;
-  }
+  (*avg_prob)[1] = (lower + upper) / 2;
+  (*avg_prob)[0] = 1 - (*avg_prob)[1];
 
-  int best = 0;
-  for (int i = 1; i < num_classes; ++i) {
-    if (quality[i] > quality[best]) {
-      best = i;
-    }
-  }
+  delete[] decision_values;
 
-  lower = quality[best];
-  upper = matrix[0][best];
-  for (int i = 1; i < num_classes; ++i) {
-    if (matrix[i][best] > upper) {
-      upper = matrix[i][best];
-    }
-  }
-
-  predict_label = labels[best];
-
-  delete[] alter_labels;
-  delete[] quality;
-  for (int i = 0; i < num_classes; ++i) {
-    delete[] f_matrix[i];
-    delete[] matrix[i];
-  }
-  delete[] f_matrix;
-  delete[] matrix;
-
-  return predict_label;
+  return predicted_label;
 }
 
 void CrossValidation(const struct Problem *prob, const struct Parameter *param,
-    double *predict_labels, double *lower_bounds, double *upper_bounds,
+    double *predicted_labels, double *lower_bounds, double *upper_bounds,
     double *brier, double *logloss) {
   int num_folds = param->num_folds;
   int num_ex = prob->num_ex;
@@ -309,7 +313,7 @@ void CrossValidation(const struct Problem *prob, const struct Parameter *param,
       ++k;
     }
 
-    struct Model *submodel = TrainVM(&subprob, param);
+    struct Model *submodel = TrainVA(&subprob, param);
 
     if (param->probability == 1) {
       for (int j = 0; j < submodel->num_classes; ++j) {
@@ -322,7 +326,7 @@ void CrossValidation(const struct Problem *prob, const struct Parameter *param,
       double *avg_prob = NULL;
       brier[perm[j]] = 0;
 
-      predict_labels[perm[j]] = PredictVA(&subprob, submodel, prob->x[perm[j]], lower_bounds[perm[j]], upper_bounds[perm[j]], &avg_prob);
+      predicted_labels[perm[j]] = PredictVA(submodel, prob->x[perm[j]], lower_bounds[perm[j]], upper_bounds[perm[j]], &avg_prob);
 
       for (k = 0; k < submodel->num_classes; ++k) {
         if (submodel->labels[k] == prob->y[perm[j]]) {
@@ -352,7 +356,7 @@ void CrossValidation(const struct Problem *prob, const struct Parameter *param,
 }
 
 void OnlinePredict(const struct Problem *prob, const struct Parameter *param,
-    double *predict_labels, int *indices,
+    double *predicted_labels, int *indices,
     double *lower_bounds, double *upper_bounds,
     double *brier, double *logloss) {
   int num_ex = prob->num_ex;
@@ -365,242 +369,41 @@ void OnlinePredict(const struct Problem *prob, const struct Parameter *param,
   std::mt19937 g(rd());
   std::shuffle(indices, indices+num_ex, g);
 
-  if (param->taxonomy_type == KNN) {
-    int num_neighbors = param->knn_param->num_neighbors;
-    int *alter_labels = new int[num_ex];
-    std::vector<int> labels;
+  Problem subprob;
+  subprob.x = new Node*[num_ex];
+  subprob.y = new double[num_ex];
 
-    int *categories = new int[num_ex];
-    double **dist_neighbors = new double*[num_ex];
-    int **label_neighbors = new int*[num_ex];
+  for (int i = 0; i < num_ex; ++i) {
+    subprob.x[i] = prob->x[indices[i]];
+    subprob.y[i] = prob->y[indices[i]];
+  }
 
-    for (int i = 0; i < num_ex; ++i) {
-      dist_neighbors[i] = new double[num_neighbors];
-      label_neighbors[i] = new int[num_neighbors];
-      for (int j = 0; j < num_neighbors; ++j) {
-        dist_neighbors[i][j] = kInf;
-        label_neighbors[i][j] = -1;
+  for (int i = 1; i < num_ex; ++i) {
+    double *avg_prob = NULL;
+    brier[i] = 0;
+    subprob.num_ex = i;
+    Model *submodel = TrainVA(&subprob, param);
+    predicted_labels[i] = PredictVA(submodel, subprob.x[i], lower_bounds[i], upper_bounds[i], &avg_prob);
+    for (int j = 0; j < submodel->num_classes; ++j) {
+      if (submodel->labels[j] == subprob.y[i]) {
+        brier[i] += (1-avg_prob[j]) * (1-avg_prob[j]);
+        double tmp = std::fmax(std::fmin(avg_prob[j], 1-kEpsilon), kEpsilon);
+        logloss[i] = - std::log(tmp);
+      } else {
+        brier[i] += avg_prob[j] * avg_prob[j];
       }
-      categories[i] = -1;
-    }
-
-    int this_label = static_cast<int>(prob->y[indices[0]]);
-    labels.push_back(this_label);
-    alter_labels[0] = 0;
-    num_classes = 1;
-
-    for (int i = 1; i < num_ex; ++i) {
-      if (num_classes == 1)
-        std::cerr <<
-          "WARNING: training set only has one class. See README for details."
-                  << std::endl;
-
-      int **f_matrix = new int*[num_classes];
-
-      for (int j = 0; j < num_classes; ++j) {
-        f_matrix[j] = new int[num_classes];
-        for (int k = 0; k < num_classes; ++k) {
-          f_matrix[j][k] = 0;
-        }
-
-        double **dist_neighbors_ = new double*[i+1];
-        int **label_neighbors_ = new int*[i+1];
-
-        for (int j = 0; j < i; ++j) {
-          clone(dist_neighbors_[j], dist_neighbors[j], num_neighbors);
-          clone(label_neighbors_[j], label_neighbors[j], num_neighbors);
-        }
-        dist_neighbors_[i] = new double[num_neighbors];
-        label_neighbors_[i] = new int[num_neighbors];
-        for (int j = 0; j < num_neighbors; ++j) {
-          dist_neighbors_[i][j] = kInf;
-          label_neighbors_[i][j] = -1;
-        }
-
-        for (int k = 0; k < i; ++k) {
-          double dist = CalcDist(prob->x[indices[k]], prob->x[indices[i]]);
-          int index;
-
-          index = CompareDist(dist_neighbors_[i], dist, num_neighbors);
-          if (index < num_neighbors) {
-            InsertLabel(label_neighbors_[i], alter_labels[k], num_neighbors, index);
-          }
-          index = CompareDist(dist_neighbors_[k], dist, num_neighbors);
-          if (index < num_neighbors) {
-            InsertLabel(label_neighbors_[k], j, num_neighbors, index);
-          }
-        }
-        for (int k = 0; k <= i; ++k) {
-          categories[k] = FindMostFrequent(label_neighbors_[k], num_neighbors);
-        }
-
-        for (int k = 0; k < i; ++k) {
-          if (categories[k] == categories[i]) {
-            ++f_matrix[j][alter_labels[k]];
-          }
-        }
-        f_matrix[j][j]++;
-
-        for (int j = 0; j < num_neighbors; ++j) {
-          dist_neighbors[i][j] = dist_neighbors_[i][j];
-          label_neighbors[i][j] = label_neighbors_[i][j];
-        }
-        for (int j = 0; j < i+1; ++j) {
-          delete[] dist_neighbors_[j];
-          delete[] label_neighbors_[j];
-        }
-        delete[] dist_neighbors_;
-        delete[] label_neighbors_;
-      }
-
-      double **matrix = new double*[num_classes];
-      for (int j = 0; j < num_classes; ++j) {
-        matrix[j] = new double[num_classes];
-        int sum = 0;
-        for (int k = 0; k < num_classes; ++k)
-          sum += f_matrix[j][k];
-        for (int k = 0; k < num_classes; ++k)
-          matrix[j][k] = static_cast<double>(f_matrix[j][k]) / sum;
-      }
-
-      double *quality = new double[num_classes];
-      double *avg_prob = new double[num_classes];
-      for (int j = 0; j < num_classes; ++j) {
-        quality[j] = matrix[0][j];
-        avg_prob[j] = matrix[0][j];
-        for (int k = 1; k < num_classes; ++k) {
-          if (matrix[k][j] < quality[j]) {
-            quality[j] = matrix[k][j];
-          }
-          avg_prob[j] += matrix[k][j];
-        }
-        avg_prob[j] /= num_classes;
-      }
-
-      int best = 0;
-      for (int j = 1; j < num_classes; ++j) {
-        if (quality[j] > quality[best]) {
-          best = j;
-        }
-      }
-
-      lower_bounds[i] = quality[best];
-      upper_bounds[i] = matrix[0][best];
-      for (int j = 1; j < num_classes; ++j) {
-        if (matrix[j][best] > upper_bounds[i]) {
-          upper_bounds[i] = matrix[j][best];
-        }
-      }
-
-      brier[i] = 0;
-      for (int j = 0; j < num_classes; ++j) {
-        if (labels[static_cast<std::size_t>(j)] == prob->y[indices[i]]) {
-          brier[i] += (1-avg_prob[j])*(1-avg_prob[j]);
-          double tmp = std::fmax(std::fmin(avg_prob[j], 1-kEpsilon), kEpsilon);
-          logloss[i] = - std::log(tmp);
-        } else {
-          brier[i] += avg_prob[j]*avg_prob[j];
-        }
-      }
-
-      if (param->probability == 1) {
-        for (int j = 0; j < num_classes; ++j) {
-          std::cout << avg_prob[j] << ' ';
-        }
-        std::cout << '\n';
-      }
-
-      delete[] avg_prob;
-
-      predict_labels[i] = labels[static_cast<std::size_t>(best)];
-
-      delete[] quality;
-      for (int j = 0; j < num_classes; ++j) {
-        delete[] f_matrix[j];
-        delete[] matrix[j];
-      }
-      delete[] f_matrix;
-      delete[] matrix;
-
-      this_label = static_cast<int>(prob->y[indices[i]]);
-      std::size_t j;
-      for (j = 0; j < num_classes; ++j) {
-        if (this_label == labels[j]) break;
-      }
-      alter_labels[i] = static_cast<int>(j);
-      if (j == num_classes) {
-        labels.push_back(this_label);
-        ++num_classes;
-      }
-
-      for (int j = 0; j < i; ++j) {
-        double dist = CalcDist(prob->x[indices[j]], prob->x[indices[i]]);
-        int index = CompareDist(dist_neighbors[j], dist, num_neighbors);
-        if (index < num_neighbors) {
-          InsertLabel(label_neighbors[j], alter_labels[i], num_neighbors, index);
-        }
-      }
-
     }
     if (param->probability == 1) {
-      for (std::size_t j = 0; j < num_classes; ++j) {
-        std::cout << labels[j] << "        ";
+      for (int j = 0; j < submodel->num_classes; ++j) {
+        std::cout << avg_prob[j] << ' ';
       }
       std::cout << '\n';
     }
-
-    for (int i = 0; i < num_ex; ++i) {
-      delete[] dist_neighbors[i];
-      delete[] label_neighbors[i];
-    }
-
-    delete[] dist_neighbors;
-    delete[] label_neighbors;
-    delete[] categories;
-    delete[] alter_labels;
-    std::vector<int>(labels).swap(labels);
+    FreeModel(submodel);
+    delete[] avg_prob;
   }
-
-  if (param->taxonomy_type == SVM_EL ||
-      param->taxonomy_type == SVM_ES ||
-      param->taxonomy_type == SVM_KM) {
-    Problem subprob;
-    subprob.x = new Node*[num_ex];
-    subprob.y = new double[num_ex];
-
-    for (int i = 0; i < num_ex; ++i) {
-      subprob.x[i] = prob->x[indices[i]];
-      subprob.y[i] = prob->y[indices[i]];
-    }
-
-    for (int i = 1; i < num_ex; ++i) {
-      double *avg_prob = NULL;
-      brier[i] = 0;
-      subprob.num_ex = i;
-      Model *submodel = TrainVM(&subprob, param);
-      predict_labels[i] = PredictVM(&subprob, submodel, subprob.x[i],
-                                    lower_bounds[i], upper_bounds[i], &avg_prob);
-      for (int j = 0; j < submodel->num_classes; ++j) {
-        if (submodel->labels[j] == subprob.y[i]) {
-          brier[i] += (1-avg_prob[j]) * (1-avg_prob[j]);
-          double tmp = std::fmax(std::fmin(avg_prob[j], 1-kEpsilon), kEpsilon);
-          logloss[i] = - std::log(tmp);
-        } else {
-          brier[i] += avg_prob[j] * avg_prob[j];
-        }
-      }
-      if (param->probability == 1) {
-        for (int j = 0; j < submodel->num_classes; ++j) {
-          std::cout << avg_prob[j] << ' ';
-        }
-        std::cout << '\n';
-      }
-      FreeModel(submodel);
-      delete[] avg_prob;
-    }
-    delete[] subprob.x;
-    delete[] subprob.y;
-  }
+  delete[] subprob.x;
+  delete[] subprob.y;
 
   return;
 }

@@ -172,17 +172,17 @@ void GroupClasses(const Problem *prob, int *num_classes_ret, int **labels_ret, i
   // However, for two-class sets with -1/+1 labels and -1 appears first,
   // we swap labels to ensure that internally the binary SVM has positive data corresponding to the +1 instances.
   //
-  if (num_classes == 2 && labels[0] == -1 && labels[1] == 1) {
-    std::swap(labels[0], labels[1]);
-    std::swap(count[0], count[1]);
-    for (int i = 0; i < num_ex; ++i) {
-      if (data_labels[i] == 0) {
-        data_labels[i] = 1;
-      } else {
-        data_labels[i] = 0;
-      }
-    }
-  }
+  // if (num_classes == 2 && labels[0] == -1 && labels[1] == 1) {
+  //   std::swap(labels[0], labels[1]);
+  //   std::swap(count[0], count[1]);
+  //   for (int i = 0; i < num_ex; ++i) {
+  //     if (data_labels[i] == 0) {
+  //       data_labels[i] = 1;
+  //     } else {
+  //       data_labels[i] = 0;
+  //     }
+  //   }
+  // }
 
   int *start = new int[num_classes];
   start[0] = 0;
