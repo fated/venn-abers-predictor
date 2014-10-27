@@ -2,25 +2,22 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <cmath>
 
 void ExitWithHelp();
-void ParseCommandLine(int argc, char *argv[], char *train_file_name, char *test_file_name, char *output_file_name, char *model_file_name);
+void ParseCommandLine(int argc, char *argv[], char *data_file_name, char *output_file_name);
 
 struct Parameter param;
 
 int main(int argc, char *argv[]) {
-  char train_file_name[256];
-  char test_file_name[256];
+  char data_file_name[256];
   char output_file_name[256];
-  char model_file_name[256];
-  struct Problem *train, *test;
-  struct Model *model;
+  struct Problem *prob;
   int num_correct = 0;
   double avg_lower_bound = 0, avg_upper_bound = 0, avg_brier = 0, avg_logloss = 0;
+  double *predict_labels = NULL, *lower_bounds = NULL, *upper_bounds = NULL, *brier = NULL, *logloss = NULL;
   const char *error_message;
 
-  ParseCommandLine(argc, argv, train_file_name, test_file_name, output_file_name, model_file_name);
+  ParseCommandLine(argc, argv, data_file_name, output_file_name);
   error_message = CheckParameter(&param);
 
   if (error_message != NULL) {
@@ -28,11 +25,10 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  train = ReadProblem(train_file_name);
-  test = ReadProblem(test_file_name);
+  prob = ReadProblem(data_file_name);
 
   if (param.svm_param->gamma == 0) {
-    param.svm_param->gamma = 1.0 / train->max_index;
+    param.svm_param->gamma = 1.0 / prob->max_index;
   }
 
   std::ofstream output_file(output_file_name);
@@ -41,72 +37,36 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
+  predict_labels = new double[prob->num_ex];
+  lower_bounds = new double[prob->num_ex];
+  upper_bounds = new double[prob->num_ex];
+  brier = new double[prob->num_ex];
+  logloss = new double[prob->num_ex];
+
   std::chrono::time_point<std::chrono::steady_clock> start_time = std::chrono::high_resolution_clock::now();
 
-  if (param.load_model == 1) {
-    model = LoadModel(model_file_name);
-    if (model == NULL) {
-      exit(EXIT_FAILURE);
-    }
-  } else {
-    model = TrainVA(train, &param);
-  }
-
-  if (param.save_model == 1) {
-    if (SaveModel(model_file_name, model) != 0) {
-      std::cerr << "Unable to save model file" << std::endl;
-    }
-  }
-
-  if (param.probability == 1) {
-    output_file << "                      ";
-    for (int i = 0; i < model->num_classes; ++i) {
-      output_file << model->labels[i] << "        ";
-    }
-    output_file << '\n';
-  }
-
-  for (int i = 0; i < test->num_ex; ++i) {
-    double predict_label, lower_bound, upper_bound, logloss, brier = 0, *avg_prob = NULL;
-
-    predict_label = PredictVA(model, test->x[i], lower_bound, upper_bound, &avg_prob);
-
-    for (int j = 0; j < model->num_classes; ++j) {
-      if (model->labels[j] == test->y[i]) {
-        brier += (1-avg_prob[j])*(1-avg_prob[j]);
-        double tmp = std::fmax(std::fmin(avg_prob[j], 1-kEpsilon), kEpsilon);
-        logloss = - std::log(tmp);
-      } else {
-        brier += avg_prob[j]*avg_prob[j];
-      }
-    }
-    avg_lower_bound += lower_bound;
-    avg_upper_bound += upper_bound;
-    avg_brier += brier;
-    avg_logloss += logloss;
-
-    output_file << std::resetiosflags(std::ios::fixed) << test->y[i] << ' ' << predict_label << ' '
-                << std::setiosflags(std::ios::fixed) << lower_bound << ' ' << upper_bound;
-    if (param.probability == 1) {
-      for (int j = 0; j < model->num_classes; ++j) {
-        output_file << ' ' << avg_prob[j];
-      }
-    }
-    output_file << '\n';
-    if (predict_label == test->y[i]) {
-      ++num_correct;
-    }
-    delete[] avg_prob;
-  }
-  avg_lower_bound /= test->num_ex;
-  avg_upper_bound /= test->num_ex;
-  avg_brier /= test->num_ex;
-  avg_logloss /= test->num_ex;
+  CrossValidation(prob, &param, predict_labels, lower_bounds, upper_bounds, brier, logloss);
 
   std::chrono::time_point<std::chrono::steady_clock> end_time = std::chrono::high_resolution_clock::now();
 
-  std::cout << "Accuracy: " << 100.0*num_correct/test->num_ex << '%'
-            << " (" << num_correct << '/' << test->num_ex << ") "
+  for (int i = 0; i < prob->num_ex; ++i) {
+    avg_lower_bound += lower_bounds[i];
+    avg_upper_bound += upper_bounds[i];
+    avg_brier += brier[i];
+    avg_logloss += logloss[i];
+
+    output_file << predict_labels[i] << ' ' << lower_bounds[i] << ' ' << upper_bounds[i] << '\n';
+    if (predict_labels[i] == prob->y[i]) {
+      ++num_correct;
+    }
+  }
+  avg_lower_bound /= prob->num_ex;
+  avg_upper_bound /= prob->num_ex;
+  avg_brier /= prob->num_ex;
+  avg_logloss /= prob->num_ex;
+
+  std::cout << "CV Accuracy: " << 100.0*num_correct/(prob->num_ex) << '%'
+            << " (" << num_correct << '/' << prob->num_ex << ") "
             << "Probabilities: [" << std::fixed << std::setprecision(4) << 100*avg_lower_bound << "%, "
             << 100*avg_upper_bound << "%] "
             << "Brier Score: " << avg_brier << ' '
@@ -115,21 +75,23 @@ int main(int argc, char *argv[]) {
 
   std::cout << "Time cost: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count()/1000.0 << " s\n";
 
-  FreeProblem(train);
-  FreeProblem(test);
-  FreeModel(model);
+  FreeProblem(prob);
   FreeParam(&param);
+  delete[] predict_labels;
+  delete[] lower_bounds;
+  delete[] upper_bounds;
+  delete[] brier;
+  delete[] logloss;
 
   return 0;
 }
 
 void ExitWithHelp() {
-  std::cout << "Usage: va-offline [options] train_file test_file [output_file]\n"
+  std::cout << "Usage: va-cv [options] data_file [output_file]\n"
             << "options:\n"
-            << "  -s model_file_name : save model\n"
-            << "  -l model_file_name : load model\n"
             << "  -a ratio : set ratio of proper training set takes of all training set in Venn-ABERS (default 0.7)\n"
             << "  -b probability estimates : whether to output probability estimates for all labels, 0 or 1 (default 0)\n"
+            << "  -v num_folds : set number of folders in cross validation (default 5)\n"
             << "  -t svm_type : set type of SVM (default 0)\n"
             << "    0 -- C-SVC    (multi-class classification)\n"
             << "    1 -- nu-SVC   (multi-class classification)\n"
@@ -152,32 +114,20 @@ void ExitWithHelp() {
   exit(EXIT_FAILURE);
 }
 
-void ParseCommandLine(int argc, char **argv, char *train_file_name, char *test_file_name, char *output_file_name, char *model_file_name) {
+void ParseCommandLine(int argc, char **argv, char *data_file_name, char *output_file_name) {
   int i;
   param.save_model = 0;
   param.load_model = 0;
+  param.num_folds = 5;
   param.probability = 0;
-  param.ratio = 0.7
   param.svm_param = new SVMParameter;
   InitSVMParam(param.svm_param);
 
   for (i = 1; i < argc; ++i) {
     if (argv[i][0] != '-') break;
-    if ((i+2) >= argc)
+    if ((i+1) >= argc)
       ExitWithHelp();
     switch (argv[i][1]) {
-      case 's': {
-        ++i;
-        param.save_model = 1;
-        std::strcpy(model_file_name, argv[i]);
-        break;
-      }
-      case 'l': {
-        ++i;
-        param.load_model = 1;
-        std::strcpy(model_file_name, argv[i]);
-        break;
-      }
       case 'a': {
         ++i;
         param.ratio = std::atof(argv[i]);
@@ -186,6 +136,15 @@ void ParseCommandLine(int argc, char **argv, char *train_file_name, char *test_f
       case 'b': {
         ++i;
         param.probability = std::atoi(argv[i]);
+        break;
+      }
+      case 'v': {
+        ++i;
+        param.num_folds = std::atoi(argv[i]);
+        if (param.num_folds < 2) {
+          std::cerr << "n-fold cross validation: n must >= 2" << std::endl;
+          exit(EXIT_FAILURE);
+        }
         break;
       }
       case 't': {
@@ -259,16 +218,15 @@ void ParseCommandLine(int argc, char **argv, char *train_file_name, char *test_f
     }
   }
 
-  if ((i+1) >= argc)
+  if (i >= argc)
     ExitWithHelp();
-  std::strcpy(train_file_name, argv[i]);
-  std::strcpy(test_file_name, argv[i+1]);
-  if ((i+2) < argc) {
-    std::strcpy(output_file_name, argv[i+2]);
+  strcpy(data_file_name, argv[i]);
+  if ((i+1) < argc) {
+    std::strcpy(output_file_name, argv[i+1]);
   } else {
-    char *p = std::strrchr(argv[i+1],'/');
+    char *p = std::strrchr(argv[i],'/');
     if (p == NULL) {
-      p = argv[i+1];
+      p = argv[i];
     } else {
       ++p;
     }

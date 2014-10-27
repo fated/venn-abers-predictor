@@ -194,11 +194,16 @@ CheckParameter	va.cpp	/^const char *CheckParameter(const struct Parameter *param
 CrossValidation	va.cpp	/^void CrossValidation(const struct Problem *prob, const struct Parameter *param,$/;"	f
 FreeModel	va.cpp	/^void FreeModel(struct Model *model) {$/;"	f
 FreeParam	va.cpp	/^void FreeParam(struct Parameter *param) {$/;"	f
+IsoNode	va.cpp	/^struct IsoNode$/;"	s	file:
+IsotonicRegression	va.cpp	/^double IsotonicRegression(const struct Calibrator cali, const double label, const double score) {$/;"	f
 LoadModel	va.cpp	/^Model *LoadModel(const char *model_file_name) {$/;"	f
 OnlinePredict	va.cpp	/^void OnlinePredict(const struct Problem *prob, const struct Parameter *param,$/;"	f
-PredictVA	va.cpp	/^double PredictVA(const struct Problem *train, const struct Model *model, const struct Node *x, double &lower, double &upper, double **avg_prob) {$/;"	f
+PredictVA	va.cpp	/^double PredictVA(const struct Model *model, const struct Node *x, double &lower, double &upper, double **avg_prob) {$/;"	f
 SaveModel	va.cpp	/^int SaveModel(const char *model_file_name, const struct Model *model) {$/;"	f
 TrainVA	va.cpp	/^Model *TrainVA(const struct Problem *train, const struct Parameter *param) {$/;"	f
+next	va.cpp	/^  struct IsoNode *next;$/;"	m	struct:IsoNode	typeref:struct:IsoNode::IsoNode	file:
+num	va.cpp	/^  int num;$/;"	m	struct:IsoNode	file:
+value	va.cpp	/^  double value;$/;"	m	struct:IsoNode	file:
 Calibrator	va.h	/^struct Calibrator {$/;"	s
 Model	va.h	/^struct Model {$/;"	s
 Parameter	va.h	/^struct Parameter {$/;"	s

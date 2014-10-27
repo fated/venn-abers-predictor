@@ -46,6 +46,8 @@ IsLowerBound	svm.cpp	/^  bool IsLowerBound(int i) {$/;"	f	class:Solver
 IsShrunk	svm.cpp	/^bool Solver::IsShrunk(int i, double Gmax1, double Gmax2) {$/;"	f	class:Solver
 IsShrunk	svm.cpp	/^bool Solver_NU::IsShrunk(int i, double Gmax1, double Gmax2, double Gmax3, double Gmax4) {$/;"	f	class:Solver_NU
 IsUpperBound	svm.cpp	/^  bool IsUpperBound(int i) {$/;"	f	class:Solver
+IsoNode	va.cpp	/^struct IsoNode$/;"	s	file:
+IsotonicRegression	va.cpp	/^double IsotonicRegression(const struct Calibrator cali, const double label, const double score) {$/;"	f
 Kernel	svm.cpp	/^Kernel::Kernel(int l, Node *const *x, const SVMParameter &param)$/;"	f	class:Kernel
 Kernel	svm.cpp	/^class Kernel : public QMatrix {$/;"	c	file:
 KernelFunction	svm.cpp	/^double Kernel::KernelFunction(const Node *x, const Node *y, const SVMParameter &param) {$/;"	f	class:Kernel
@@ -71,7 +73,7 @@ ParseCommandLine	va-offline.cpp	/^void ParseCommandLine(int argc, char **argv, c
 ParseCommandLine	va-online.cpp	/^void ParseCommandLine(int argc, char **argv, char *data_file_name, char *output_file_name) {$/;"	f
 PredictSVM	svm.cpp	/^double PredictSVM(const SVMModel *model, const Node *x) {$/;"	f
 PredictSVMValues	svm.cpp	/^double PredictSVMValues(const SVMModel *model, const Node *x, double *decision_values) {$/;"	f
-PredictVA	va.cpp	/^double PredictVA(const struct Problem *train, const struct Model *model, const struct Node *x, double &lower, double &upper, double **avg_prob) {$/;"	f
+PredictVA	va.cpp	/^double PredictVA(const struct Model *model, const struct Node *x, double &lower, double &upper, double **avg_prob) {$/;"	f
 PrintCout	svm.cpp	/^static void PrintCout(const char *s) {$/;"	f	file:
 PrintNull	svm.cpp	/^static void PrintNull(const char *s) {}$/;"	f	file:
 PrintString	svm.cpp	/^static void (*PrintString) (const char *) = &PrintNull;$/;"	v	file:
@@ -164,7 +166,9 @@ main	va-offline.cpp	/^int main(int argc, char *argv[]) {$/;"	f
 main	va-online.cpp	/^int main(int argc, char *argv[]) {$/;"	f
 max_index	utilities.h	/^  int max_index;$/;"	m	struct:Problem
 next	svm.cpp	/^    Head *prev, *next;  \/\/ a circular list$/;"	m	struct:Cache::Head	file:
+next	va.cpp	/^  struct IsoNode *next;$/;"	m	struct:IsoNode	typeref:struct:IsoNode::IsoNode	file:
 nu	svm.h	/^  double nu;  \/\/ for NU_SVC$/;"	m	struct:SVMParameter
+num	va.cpp	/^  int num;$/;"	m	struct:IsoNode	file:
 num_classes	svm.h	/^  int num_classes;  \/\/ number of classes (k)$/;"	m	struct:SVMModel
 num_classes	va.h	/^  int num_classes;$/;"	m	struct:Model
 num_ex	svm.h	/^  int num_ex;$/;"	m	struct:SVMModel
@@ -205,6 +209,7 @@ unshrink_	svm.cpp	/^  bool unshrink_;  \/\/ XXX$/;"	m	class:Solver	file:
 upper_bound_n	svm.cpp	/^    double upper_bound_n;$/;"	m	struct:Solver::SolutionInfo	file:
 upper_bound_p	svm.cpp	/^    double upper_bound_p;$/;"	m	struct:Solver::SolutionInfo	file:
 value	utilities.h	/^  double value;$/;"	m	struct:Node
+value	va.cpp	/^  double value;$/;"	m	struct:IsoNode	file:
 weight_labels	svm.h	/^  int *weight_labels;  \/\/ for C_SVC$/;"	m	struct:SVMParameter
 weights	svm.h	/^  double *weights;  \/\/ for C_SVC$/;"	m	struct:SVMParameter
 x	utilities.h	/^  struct Node **x;$/;"	m	struct:Problem	typeref:struct:Problem::Node
