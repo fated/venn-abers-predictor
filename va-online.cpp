@@ -64,13 +64,13 @@ int main(int argc, char *argv[]) {
       ++num_correct;
     }
   }
-  avg_lower_bound /= prob->num_ex - 1;
-  avg_upper_bound /= prob->num_ex - 1;
-  avg_brier /= prob->num_ex - 1;
-  avg_logloss /= prob->num_ex - 1;
+  avg_lower_bound /= prob->num_ex - 4;
+  avg_upper_bound /= prob->num_ex - 4;
+  avg_brier /= prob->num_ex - 4;
+  avg_logloss /= prob->num_ex - 4;
 
-  std::cout << "Online Accuracy: " << 100.0*num_correct/(prob->num_ex-1) << '%'
-            << " (" << num_correct << '/' << prob->num_ex-1 << ") "
+  std::cout << "Online Accuracy: " << 100.0*num_correct/(prob->num_ex-4) << '%'
+            << " (" << num_correct << '/' << prob->num_ex-4 << ") "
             << "Probabilities: [" << std::fixed << std::setprecision(4) << 100*avg_lower_bound << "%, "
             << 100*avg_upper_bound << "%] "
             << "Brier Score: " << avg_brier << ' '

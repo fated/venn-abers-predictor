@@ -12,7 +12,6 @@ struct IsoNode
 };
 
 double IsotonicRegression(const struct Calibrator *cali, const double label, const double score) {
-
   int num_ex = cali->num_ex + 1;
   int i, j;
 
@@ -400,7 +399,7 @@ void OnlinePredict(const struct Problem *prob, const struct Parameter *param,
     subprob.y[i] = prob->y[indices[i]];
   }
 
-  for (int i = 5; i < num_ex; ++i) {
+  for (int i = 4; i < num_ex; ++i) {
     double *avg_prob = NULL;
     brier[i] = 0;
     subprob.num_ex = i;
