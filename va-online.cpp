@@ -64,13 +64,13 @@ int main(int argc, char *argv[]) {
       ++num_correct;
     }
   }
-  avg_lower_bound /= prob->num_ex - 1;
-  avg_upper_bound /= prob->num_ex - 1;
-  avg_brier /= prob->num_ex - 1;
-  avg_logloss /= prob->num_ex - 1;
+  avg_lower_bound /= prob->num_ex - 4;
+  avg_upper_bound /= prob->num_ex - 4;
+  avg_brier /= prob->num_ex - 4;
+  avg_logloss /= prob->num_ex - 4;
 
-  std::cout << "Online Accuracy: " << 100.0*num_correct/(prob->num_ex-1) << '%'
-            << " (" << num_correct << '/' << prob->num_ex-1 << ") "
+  std::cout << "Online Accuracy: " << 100.0*num_correct/(prob->num_ex-4) << '%'
+            << " (" << num_correct << '/' << prob->num_ex-4 << ") "
             << "Probabilities: [" << std::fixed << std::setprecision(4) << 100*avg_lower_bound << "%, "
             << 100*avg_upper_bound << "%] "
             << "Brier Score: " << avg_brier << ' '
@@ -96,6 +96,7 @@ void ExitWithHelp() {
             << "options:\n"
             << "  -a ratio : set ratio of proper training set takes of all training set in Venn-ABERS (default 0.7)\n"
             << "  -b probability estimates : whether to output probability estimates for all labels, 0 or 1 (default 0)\n"
+            << "  -f calibrated prediction : whether to calibrate prediction based on the higher possibility, 0 or 1 (default 0)\n"
             << "  -t svm_type : set type of SVM (default 0)\n"
             << "    0 -- C-SVC    (multi-class classification)\n"
             << "    1 -- nu-SVC   (multi-class classification)\n"
@@ -123,6 +124,8 @@ void ParseCommandLine(int argc, char **argv, char *data_file_name, char *output_
   param.save_model = 0;
   param.load_model = 0;
   param.probability = 0;
+  param.ratio = 0.7;
+  param.calibrated = 0;
   param.svm_param = new SVMParameter;
   InitSVMParam(param.svm_param);
 
@@ -139,6 +142,11 @@ void ParseCommandLine(int argc, char **argv, char *data_file_name, char *output_
       case 'b': {
         ++i;
         param.probability = std::atoi(argv[i]);
+        break;
+      }
+      case 'f': {
+        ++i;
+        param.calibrated = std::atoi(argv[i]);
         break;
       }
       case 't': {

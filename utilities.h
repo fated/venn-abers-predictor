@@ -53,11 +53,11 @@ static inline void clone(T *&dest, S *src, int size) {
   return;
 }
 
-template <typename T>
-void QuickSortIndex(T array[], size_t index[], size_t left, size_t right) {
+template <typename T, typename S>
+void QuickSortIndex(T array[], S index[], size_t left, size_t right) {
   size_t i = left, j = right;
   size_t p = left + (right-left)/2;
-  size_t ind = index[p];
+  S ind = index[p];
   T pivot = array[p];
   for ( ; i < j; ) {
     while ((i < p) && (pivot >= array[i]))

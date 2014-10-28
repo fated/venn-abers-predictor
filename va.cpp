@@ -11,9 +11,8 @@ struct IsoNode
   struct IsoNode *next;
 };
 
-double IsotonicRegression(const struct Calibrator cali, const double label, const double score) {
-
-  int num_ex = cali.num_ex + 1;
+double IsotonicRegression(const struct Calibrator *cali, const double label, const double score) {
+  int num_ex = cali->num_ex + 1;
   int i, j;
 
   // create linked list
@@ -28,20 +27,20 @@ double IsotonicRegression(const struct Calibrator cali, const double label, cons
     p = c;
   }
 
-  // insert y
+  // insert label
   i = 0;
   p = h;
   int flag = 0;
   while (i < num_ex-1) {
-    if (score <= cali.scores[i] && !flag) {
+    if (score <= cali->scores[i] && !flag) {
       p->num = 1;
-      p->value = y;
+      p->value = label;
       p = p->next;
       j = i;
       flag = 1;
     }
     p->num = 1;
-    p->value = cali.labels[i++];
+    p->value = cali->labels[i++];
     p = p->next;
   }
   if (p != NULL) {
@@ -52,7 +51,7 @@ double IsotonicRegression(const struct Calibrator cali, const double label, cons
 
   // pava
   p = h;
-  while (TRUE) {
+  while (1) {
     int inc = 0;
     for (p = h; p->next != NULL; p = p->next) {
       c = p->next;
@@ -126,7 +125,7 @@ Model *TrainVA(const struct Problem *train, const struct Parameter *param) {
   int fold_start = 0;
   double curr_label = train->y[index[0]];
   for (int i = 1; i < num_ex; ++i) {
-    double new_label = train->y[index[i]]
+    double new_label = train->y[index[i]];
     if (new_label != curr_label || i == num_ex-1) {
       if (i == num_ex-1) {
         ++i;
@@ -170,9 +169,8 @@ Model *TrainVA(const struct Problem *train, const struct Parameter *param) {
       ++index2;
     }
   }
-  delete[] selected;
 
-  model->svm_model = TrainSVM(proper, param->svm_param);
+  model->svm_model = TrainSVM(&proper, param->svm_param);
 
   Calibrator *cali = new Calibrator;
   cali->num_ex = num_cali;
@@ -181,15 +179,27 @@ Model *TrainVA(const struct Problem *train, const struct Parameter *param) {
 
   for(int i = 0; i < num_cali; ++i) {
     double *decision_values = new double[num_classes*(num_classes-1)/2];
-    PredictSVMValues(model, calibrator.x[i], decision_values);
+    PredictSVMValues(model->svm_model, calibrator.x[i], decision_values);
     cali->scores[i] = decision_values[0];
-    cali->labels[i] = calibrator.y[i];
+    cali->labels[i] = (calibrator.y[i]==label[0]) ? 1 : 0;
+    delete[] decision_values;
   }
-  QuickSortIndex(cali->scores, cali->labels, 0, static_cast<size_t>(num_cali));
-  model->cali = *cali;
+  QuickSortIndex(cali->scores, cali->labels, 0, static_cast<size_t>(num_cali)-1);
+  model->cali = cali;
   model->num_classes = num_classes;
   model->num_ex = num_ex;
   clone(model->labels, model->svm_model->labels, num_classes);
+
+  delete[] selected;
+  delete[] index;
+  delete[] perm;
+  delete[] start;
+  delete[] label;
+  delete[] count;
+  delete[] proper.x;
+  delete[] proper.y;
+  delete[] calibrator.x;
+  delete[] calibrator.y;
 
   return model;
 }
@@ -201,12 +211,24 @@ double PredictVA(const struct Model *model, const struct Node *x, double &lower,
   decision_values = new double[num_classes*(num_classes-1)/2];
   double predicted_label = PredictSVMValues(model->svm_model, x, decision_values);
 
-  lower = isotonic(model->cali, 0, decision_values[0]);
-  upper = isotonic(model->cali, 1, decision_values[0]);
+  lower = IsotonicRegression(model->cali, 0, decision_values[0]);
+  upper = IsotonicRegression(model->cali, 1, decision_values[0]);
 
   *avg_prob = new double[num_classes];
-  (*avg_prob)[1] = (lower + upper) / 2;
-  (*avg_prob)[0] = 1 - (*avg_prob)[1];
+  (*avg_prob)[0] = (lower + upper) / 2;
+  (*avg_prob)[1] = 1 - (*avg_prob)[0];
+  if (model->param.calibrated == 1) {
+    if ((*avg_prob)[0] > (*avg_prob)[1]) {
+      predicted_label = model->labels[0];
+    } else {
+      predicted_label = model->labels[1];
+    }
+  }
+  if (predicted_label == model->labels[1]) {
+    double tmp = lower;
+    lower = 1 - upper;
+    upper = 1 - tmp;
+  }
 
   delete[] decision_values;
 
@@ -360,7 +382,6 @@ void OnlinePredict(const struct Problem *prob, const struct Parameter *param,
     double *lower_bounds, double *upper_bounds,
     double *brier, double *logloss) {
   int num_ex = prob->num_ex;
-  int num_classes = 0;
 
   for (int i = 0; i < num_ex; ++i) {
     indices[i] = i;
@@ -378,7 +399,7 @@ void OnlinePredict(const struct Problem *prob, const struct Parameter *param,
     subprob.y[i] = prob->y[indices[i]];
   }
 
-  for (int i = 1; i < num_ex; ++i) {
+  for (int i = 4; i < num_ex; ++i) {
     double *avg_prob = NULL;
     brier[i] = 0;
     subprob.num_ex = i;
@@ -419,9 +440,10 @@ int SaveModel(const char *model_file_name, const struct Model *model) {
 
   model_file << "ratio " << param.ratio << '\n';
   model_file << "probability " << param.probability << '\n';
+  model_file << "calibrated " << param.calibrated << '\n';
 
   if (model->cali != NULL) {
-    model_file << "num_cali " << model->cali->num_cali << '\n';
+    model_file << "num_cali " << model->cali->num_ex << '\n';
   }
 
   if (model->svm_model != NULL) {
@@ -429,7 +451,7 @@ int SaveModel(const char *model_file_name, const struct Model *model) {
   }
 
   if (model->cali != NULL) {
-    int num_cali = model->cali->num_cali;
+    int num_cali = model->cali->num_ex;
     model_file << "cali_scores\n";
     for (int i = 0; i < num_cali; ++i) {
       model_file << model->cali->scores[i] << ' ';
@@ -476,9 +498,12 @@ Model *LoadModel(const char *model_file_name) {
     if (std::strcmp(cmd, "probability") == 0) {
       model_file >> param.probability;
     } else
+    if (std::strcmp(cmd, "calibrated") == 0) {
+      model_file >> param.calibrated;
+    } else
     if (std::strcmp(cmd, "num_cali") == 0) {
       model->cali = new Calibrator;
-      model_file >> model->cali->num_cali;
+      model_file >> model->cali->num_ex;
     } else
     if (std::strcmp(cmd, "svm_model") == 0) {
       model->svm_model = LoadSVMModel(model_file);
@@ -494,15 +519,14 @@ Model *LoadModel(const char *model_file_name) {
       model->param.svm_param = &model->svm_model->param;
     } else
     if (std::strcmp(cmd, "cali_scores") == 0) {
-      int num_cali = model->cali->num_cali;
+      int num_cali = model->cali->num_ex;
       model->cali->scores = new double[num_cali];
       for (int i = 0; i < num_cali; ++i) {
         model_file >> model->cali->scores[i];
       }
-      break;
     } else
     if (std::strcmp(cmd, "cali_labels") == 0) {
-      int num_cali = model->cali->num_cali;
+      int num_cali = model->cali->num_ex;
       model->cali->labels = new double[num_cali];
       for (int i = 0; i < num_cali; ++i) {
         model_file >> model->cali->labels[i];
@@ -529,8 +553,12 @@ void FreeModel(struct Model *model) {
   }
 
   if (model->cali != NULL) {
-    delete[] model->cali->scores;
-    delete[] model->cali->labels;
+    if (model->cali->scores != NULL) {
+      delete[] model->cali->scores;
+    }
+    if (model->cali->labels != NULL) {
+      delete[] model->cali->labels;
+    }
     delete model->cali;
     model->cali = NULL;
   }
@@ -560,13 +588,9 @@ const char *CheckParameter(const struct Parameter *param) {
     return "cannot save and load model at the same time";
   }
 
-  if (param->taxonomy_type > 3) {
-    return "no such taxonomy type";
-  }
-
   if (param->ratio <= 0 ||
       param->ratio >= 1) {
-    return "ratio should be > 0 and < 1"
+    return "ratio should be > 0 and < 1";
   }
 
   if (param->svm_param == NULL) {
