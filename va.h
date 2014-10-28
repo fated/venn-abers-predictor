@@ -16,6 +16,7 @@ struct Parameter {
   int load_model;
   int num_folds;
   int probability;
+  int calibrated;
   double ratio;
 };
 
