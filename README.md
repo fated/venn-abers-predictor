@@ -1,6 +1,6 @@
 # An Implementation on Venn-ABERS Predictor
 
-This is a implementation of Venn-ABERS predictor.
+This is an implementation of Venn-ABERS predictor.
 
 Venn-ABERS predictor is a recently developed algorithm for multi-probability predictions. It is modified from Zadrozny and Elkan's procedure of probability forecasting, which can be poorly calibrated. The modification introduced Venn predictors into the procedure to overcome the problem of potential poor calibration due to that Venn predictors are always well calibrated and guaranteed to be well calibrated under the exchangeability assumption. The basic idea of Venn-ABERS predictor is that the training set is split into two parts: the proper training set, which is used to train the learning machine, and the calibration set, which is to calculate the probabilistic outputs. The calibration set will be transformed into a monotone increasing set in this algorithm according to the paper of M. Ayer, H.D. Brunk, G.M. Ewing, W.T. Reid and E. Silverman. The term _"ABERS"_ also comes from the acronyms of their surnames.
 
@@ -28,8 +28,6 @@ The format of training and testing data file is:
 ...
 ```
 Each line contains an instance and is ended by a `'\n'` character. For Venn-ABERS predictor, `<label>` is an integer indicating the class label (only support binary case problems). The pair `<index>:<value>` gives a feature (attribute) value: `<index>` is an integer starting from 1 and `<value>` is a real number. The only exception is the precomputed kernel, where `<index>` starts from 0; see the section of precomputed kernels. Indices must be in **ASCENDING** order. Labels in the testing file are only used to calculate accuracy or errors. If they are unknown, just fill the first column with any numbers.
-
-Type `va-train bc_scale`, and the program will read the training data and output the model file `bc_scale.model`. If you type `va-predict bc_scale.t bc_scale.model output` to see the prediction accuracy. The `output` file contains the predicted class labels and the lower bound and upper bound for the predicted label.
 
 ## "va-offline" Usage[↩](#table-of-contents)
 
@@ -134,7 +132,7 @@ options:
 * Scale your data. For example, scale each attribute to `[0,1]` or `[-1,+1]`.
 * Before use, consider using grid search to find the best parameters for SVM.
 * If data for classification are unbalanced (e.g. many positive and few negative), try different penalty parameters `C` by `-wi` (see examples below).
-* Specify larger cache size (i.e., larger -m) for huge problems.
+* Specify larger cache size (i.e., larger `-m`) for huge problems.
 
 ## Examples[↩](#table-of-contents)
 
@@ -178,7 +176,7 @@ New testing instance for any `x`:
 
 That is, in the training file the first column must be the "ID" of `xi`. In testing, `?` can be any value.
 
-All kernel values including **ZERO**s must be explicitly provided. Any permutation or random subsets of the training/testing files are also valid (see examples below).
+All kernel values including __ZEROs__ must be explicitly provided. Any permutation or random subsets of the training/testing files are also valid (see examples below).
 
 ### Examples
 
@@ -202,7 +200,7 @@ If the linear kernel is used, we have the following new training/testing sets:
 0  0:? 1:2 2:0  3:1
 ```
 
-? can be any value.
+`?` can be any value.
 
 Any subset of the above training file is also valid. For example,
 
